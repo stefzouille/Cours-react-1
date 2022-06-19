@@ -1,37 +1,58 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import Card from './Card';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import Card from "./Card";
 
 const Countries = () => {
-
-  // variable data seul facon de modifier c est passer par setData
   const [data, setData] = useState([]);
-  // 36 est un multiple de 12 c est le plus pratique a utiliser
   const [rangeValue, setRangeValue] = useState(36);
-  // le useEffect se joue lorsque le composant est monté/quandi il est appelé
+  const [selectedRadio, setSelectedRadio] = useState("");
+  const radios = ["Africa", "America", "Asia", "Europe", "Oceania"];
+
+  // Le useEffect se joue lorsque le composant est monté
   useEffect(() => {
     axios
-      .get('https://restcountries.com/v3.1/all')
-      .then((res) => setData(res.data))
+      .get("https://restcountries.com/v3.1/all")
+      .then((res) => setData(res.data));
   }, []);
 
   return (
     <div className="countries">
-      <h1>Countries</h1>
-      {/* element pour filtrer */}
       <ul className="radio-container">
-        {/* creation visuel du curseur input range */}
-        <input type="range" min="1" max="250" defaultValue={rangeValue}
-          onChange={(e) => setRangeValue(e.target.value)} />
-
+        <input
+          type="range"
+          min="1"
+          max="250"
+          defaultValue={rangeValue}
+          onChange={(e) => setRangeValue(e.target.value)}
+        />
+        {radios.map((continent) => (
+          <li>
+            <input
+              type="radio"
+              id={continent}
+              name="continentRadio"
+              pour deselectionner l input range si on clique sur tous les continents
+              checked={continent === selectedRadio}
+              onChange={(e) => setSelectedRadio(e.target.id)}
+            />
+            <label htmlFor={continent}>{continent}</label>
+          </li>
+        ))}
       </ul>
+      {/* pour pourvoir revenir a tous les continents ne s affiche que si filtre selectedRadio actif */}
+      {/* si selectedRadio est true alors tu affiche le button */}
+      {selectedRadio && (
+        <button onClick={() => setSelectedRadio("")}>
+          Tout les continents :
+        </button>
+      )}
       <ul>
-        {/* limiter la metode curseur a un certains nombres de pays avec slice */}
-        {/* 2eme params du slice on passe le nombre de pays a afficher rangeValue */}
         {data
+          .filter((country) => country.continents[0].includes(selectedRadio))
+          // par ordre decroissant de population
+          .sort((a, b) => b.population - a.population)
           .slice(0, rangeValue)
           .map((country, index) => (
-            // composant enfant de countries et on passe une props country pour lié le composant card
             <Card key={index} country={country} />
           ))}
       </ul>
